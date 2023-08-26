@@ -15,3 +15,5 @@ aluguel1.alugar(cliente2, bike1)
 aluguel1.devolver(bike1)
 
 aluguel1.alugar(cliente2, bike1)
+
+console.log('testando compilação')

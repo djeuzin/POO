@@ -8,13 +8,14 @@ class Aluguel {
             this.responsavel = resp;
             item.disponibilidade = false;
             this.item = item;
-            console.log('Cliente ', this.responsavel.name, ' alugou a bike!');
-            return true;
+            console.log('Cliente', this.responsavel.name, 'alugou a bike!');
+            return;
         }
         console.log('Bike indisponível. O cliente ', (_a = this.responsavel) === null || _a === void 0 ? void 0 : _a.name, ' está com ela no momento.');
-        return false;
     }
     devolver(bicicleta) {
+        var _a;
+        console.log('O cliente', (_a = this.responsavel) === null || _a === void 0 ? void 0 : _a.name, 'devolveu a bike.');
         this.responsavel = undefined;
         this.item = undefined;
         bicicleta.disponibilidade = true;

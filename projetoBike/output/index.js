@@ -11,3 +11,4 @@ const cliente2 = new cliente_1.Cliente('Jurandir', '545487542');
 aluguel1.alugar(cliente2, bike1);
 aluguel1.devolver(bike1);
 aluguel1.alugar(cliente2, bike1);
+console.log('testando compilação');

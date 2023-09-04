@@ -2,10 +2,16 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Bike = void 0;
 class Bike {
-    constructor(cor, tamanho, disponibilidade) {
-        this.cor = cor;
-        this.tamanho = tamanho;
-        this.disponibilidade = disponibilidade;
+    constructor(name, type, bodysize, maxLoad, rate, description, ratings, imageUrls, id) {
+        this.name = name;
+        this.type = type;
+        this.bodysize = bodysize;
+        this.maxLoad = maxLoad;
+        this.rate = rate;
+        this.description = description;
+        this.ratings = ratings;
+        this.imageUrls = imageUrls;
+        this.id = id;
     }
 }
 exports.Bike = Bike;

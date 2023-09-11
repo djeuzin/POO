@@ -2,21 +2,42 @@ import { Bike } from "./bike"
 import { Rent } from "./rent"
 import { User } from "./user"
 import crypto from 'crypto'
+const bcrypt = require('bcryptjs')
 
 export class App {
     users: User[] = []
     bikes: Bike[] = []
     rents: Rent[] = []
 
-    //Slices the rent with the same bike and user from this.rents, 
-    //then adds the date of return to the object rent
-    returnBike(bike: Bike, user: User): void {
-        const indexOfRent = this.rents.findIndex(rent => rent.bike === bike && rent.user === user)
-        const arrRent = this.rents.slice(indexOfRent, indexOfRent+1)
-        const returnedRent = arrRent[0]
+    //Prints and then returns the users array
+    userList(): User[] {
+        console.log(this.users)
+        return this.users
+    }
 
-        returnedRent.dateReturned = new Date()
-        console.log('Bike returned successfully')
+    //Prints and then returns the list of rents
+    rentList(): Rent[]{
+        console.log(this.rents)
+        return this.rents
+    }
+
+    //Prints and then returns the list of bikes registered
+    bikeList(): Bike[] {
+        console.log(this.bikes)
+        return this.bikes
+    }
+
+    //Finds a rent with the same user and bike in the database with no date of return. If it finds, adds
+    //today's date as the date of return, if not throws an error as the rent wasn't found in the database
+    returnBike(bike: Bike, user: User): void {
+        const rent = this.rents.find(aRent => aRent.bike === bike && aRent.user.email === user.email && aRent.dateReturned === undefined)
+
+        if(rent) {
+            rent.dateReturned = new Date()
+            console.log('Bike returne successfully')
+        }
+
+        throw new Error('Rent not found')
     }
 
     //Gets an array from this.rents of all the rents related to the bike wanted,
@@ -61,13 +82,34 @@ export class App {
         return this.users.find(user => user.email === email)
     }
 
+    //Adding password cryptography 
     addUser(user: User): void {
         if (this.users.some(rUser => { return rUser.email === user.email })){
             throw new Error('Email already in use.')
         }
         user.id = crypto.randomUUID()
+
+        //Hashing the password
+        const unhashedPassword = user.password
+        user.password = bcrypt.hashSync(unhashedPassword, 10)
+
         this.users.push(user)
 
         console.log('User added to database')
+    }
+
+    //Function that takes an email and a password and verifies if there's a user registered with the given email and password
+    verifyUser(email: String, password: String): boolean {
+        const user = this.users.find(aUser => aUser.email === email)
+
+        //If no user with the same email was found or the given password's hash doesn't match return false
+        if(!user || !bcrypt.compareSync(password, user.password)) {
+            console.log('Email or password incorret')
+            return false
+        }
+        else {
+            console.log('User verified')
+            return true
+        }
     }
 }

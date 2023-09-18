@@ -28,28 +28,28 @@ class App {
         console.log(this.bikes);
         return this.bikes;
     }
-    //Finds a rent with the same user and bike in the database with no date of return. If it finds, adds
-    //today's date as the date of return, if not throws an error as the rent wasn't found in the database
+    //Finds a rent in the stack with same user, bike and no return date. Gets the difference of the times
+    //in hours and returns the value of the rent
     returnBike(bike, user) {
-        const rent = this.rents.find(aRent => aRent.bike === bike && aRent.user.email === user.email && aRent.dateReturned === undefined);
-        if (rent) {
-            rent.dateReturned = new Date();
-            console.log('Bike returne successfully');
+        const currentTime = new Date();
+        const rent = this.rents.find(aRent => aRent.bike.id === bike.id && aRent.user.email === user.email && aRent.endDate === undefined);
+        if (!rent) {
+            throw new Error('Rent not found');
         }
-        throw new Error('Rent not found');
+        rent.endDate = currentTime;
+        rent.bike.available = true;
+        var timeDiff = (rent.endDate.getTime() - rent.startDate.getTime()) / 1000;
+        timeDiff /= (60 * 60);
+        return rent.bike.rate * timeDiff;
     }
-    //Gets an array from this.rents of all the rents related to the bike wanted,
-    //uses this new array to see if it is possible to rent, if it is, creates a rent and pushes onto this.rents
+    //If a bike is avaliable, sets its avaliability to false, creates a new rent and pushes onto the stack
     rentBike(bike, user, date1, date2) {
-        const rentsOfBike = this.rents.filter(uRent => uRent.bike === bike);
-        const newRent = rent_1.Rent.create(rentsOfBike, bike, user, date1, date2);
-        if (newRent) {
-            this.rents.push(newRent);
-            console.log('Bike rented successfully');
+        if (!bike.available) {
+            throw new Error('Bike unavaliable');
         }
-        else {
-            console.log('Unable to rent bike now');
-        }
+        bike.available = false;
+        const newRent = new rent_1.Rent(bike, user, new Date());
+        this.rents.push(newRent);
     }
     //Receives and email, if there's an user with that email on the users array, remove it
     //Returns true if it successfully deleted the user, falser otherwise
@@ -79,12 +79,12 @@ class App {
         }
         user.id = crypto_1.default.randomUUID();
         //Hashing the password
-        const oldPassword = user.password;
-        user.password = bcrypt.hashSync(oldPassword, 10);
+        const unhashedPassword = user.password;
+        user.password = bcrypt.hashSync(unhashedPassword, 10);
         this.users.push(user);
         console.log('User added to database');
     }
-    //Function that takes an email and a password and verifies if there's a user registered with that email and password
+    //Function that takes an email and a password and verifies if there's a user registered with the given email and password
     verifyUser(email, password) {
         const user = this.users.find(aUser => aUser.email === email);
         //If no user with the same email was found or the given password's hash doesn't match return false
@@ -96,6 +96,10 @@ class App {
             console.log('User verified');
             return true;
         }
+    }
+    getBikePosition(aBike) {
+        navigator.geolocation.getCurrentPosition(aBike.onSuccess);
+        console.log(aBike.latitude, aBike.longitude);
     }
 }
 exports.App = App;

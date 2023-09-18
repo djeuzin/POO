@@ -12,6 +12,14 @@ class Bike {
         this.ratings = ratings;
         this.imageUrls = imageUrls;
         this.id = id;
+        this.available = true;
+        this.latitude = undefined;
+        this.longitude = undefined;
+    }
+    onSuccess(position) {
+        this.latitude = position.coords.latitude;
+        this.longitude = position.coords.longitude;
+        console.log('Localização adquirida com sucesso');
     }
 }
 exports.Bike = Bike;

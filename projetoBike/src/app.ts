@@ -27,33 +27,32 @@ export class App {
         return this.bikes
     }
 
-    //Finds a rent with the same user and bike in the database with no date of return. If it finds, adds
-    //today's date as the date of return, if not throws an error as the rent wasn't found in the database
-    returnBike(bike: Bike, user: User): void {
-        const rent = this.rents.find(aRent => aRent.bike === bike && aRent.user.email === user.email && aRent.dateReturned === undefined)
+    //Finds a rent in the stack with same user, bike and no return date. Gets the difference of the times
+    //in hours and returns the value of the rent
+    returnBike(bike: Bike, user: User): number {
+        const currentTime = new Date()
+        const rent = this.rents.find(aRent => aRent.bike.id === bike.id && aRent.user.email === user.email && aRent.endDate === undefined)
 
-        if(rent) {
-            rent.dateReturned = new Date()
-            console.log('Bike returne successfully')
+        if(!rent){
+            throw new Error('Rent not found')
         }
 
-        throw new Error('Rent not found')
+        rent.endDate = currentTime
+        rent.bike.available = true
+        var timeDiff = (rent.endDate.getTime() - rent.startDate.getTime()) / 1000
+        timeDiff /= (60*60)
+        return rent.bike.rate * timeDiff
     }
 
-    //Gets an array from this.rents of all the rents related to the bike wanted,
-    //uses this new array to see if it is possible to rent, if it is, creates a rent and pushes onto this.rents
+    //If a bike is avaliable, sets its avaliability to false, creates a new rent and pushes onto the stack
     rentBike(bike: Bike, user: User, date1: Date, date2: Date): void {
-        const rentsOfBike = this.rents.filter(uRent => uRent.bike === bike)
-
-        const newRent = Rent.create(rentsOfBike, bike, user, date1, date2)
-
-        if(newRent){
-            this.rents.push(newRent)
-            console.log('Bike rented successfully')
+        if(!bike.available) {
+            throw new Error('Bike unavaliable')
         }
-        else{
-            console.log('Unable to rent bike now')
-        }
+
+        bike.available = false
+        const newRent = new Rent(bike, user, new Date())
+        this.rents.push(newRent)
     }
 
     //Receives and email, if there's an user with that email on the users array, remove it
@@ -110,6 +109,16 @@ export class App {
         else {
             console.log('User verified')
             return true
+        }
+    }
+
+    getBikePosition(aBike: Bike):void {
+        if(!navigator.geolocation) {
+            console.log('Aparelho não suporta geolocalização')
+        }
+        else{
+            navigator.geolocation.getCurrentPosition(aBike.onSuccess)
+            console.log(aBike.latitude, aBike.longitude)
         }
     }
 }

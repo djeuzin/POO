@@ -1,6 +1,7 @@
 import { Bike } from "./bike"
 import { Rent } from "./rent"
 import { User } from "./user"
+import { Location } from "./location"
 import crypto from 'crypto'
 const bcrypt = require('bcryptjs')
 
@@ -45,7 +46,7 @@ export class App {
     }
 
     //If a bike is avaliable, sets its avaliability to false, creates a new rent and pushes onto the stack
-    rentBike(bike: Bike, user: User, date1: Date, date2: Date): void {
+    rentBike(bike: Bike, user: User): void {
         if(!bike.available) {
             throw new Error('Bike unavaliable')
         }
@@ -112,13 +113,15 @@ export class App {
         }
     }
 
-    getBikePosition(aBike: Bike):void {
-        if(!navigator.geolocation) {
-            console.log('Aparelho não suporta geolocalização')
+    moveBike(bikeId: string | undefined, newPosition: Location): void {
+        const aBike = this.bikes.find(aBike => aBike.id === bikeId)
+
+        if(aBike){
+            aBike.position = newPosition
+            console.log('Bike moved to new location.')
         }
         else{
-            navigator.geolocation.getCurrentPosition(aBike.onSuccess)
-            console.log(aBike.latitude, aBike.longitude)
+            throw new Error('Bike not found')
         }
     }
 }

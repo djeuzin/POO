@@ -3,6 +3,10 @@ import { Rent } from "./rent"
 import { User } from "./user"
 import { Location } from "./location"
 import crypto from 'crypto'
+import { UserNotFoundError } from "./errors/user-not-found-error"
+import { DuplicatedEmailError } from "./errors/duplicated-email-error"
+import { RentNotFoundError } from "./errors/rent-not-found-error"
+import { BikeNotFoundError } from "./errors/bike-not-found-error"
 const bcrypt = require('bcryptjs')
 
 export class App {
@@ -10,22 +14,30 @@ export class App {
     bikes: Bike[] = []
     rents: Rent[] = []
 
-    //Prints and then returns the users array
+    //Returns the users array
     userList(): User[] {
-        console.log(this.users)
         return this.users
     }
 
-    //Prints and then returns the list of rents
+    //Returns the list of rents
     rentList(): Rent[]{
-        console.log(this.rents)
         return this.rents
     }
 
-    //Prints and then returns the list of bikes registered
+    //Returns the list of bikes registered
     bikeList(): Bike[] {
-        console.log(this.bikes)
         return this.bikes
+    }
+
+    //Searches for a bike with the same id given, throws error if it doesn't find the bike
+    findBike(bikeId: string | undefined): Bike {
+        const bike = this.bikes.find(aBike => aBike.id === bikeId)
+
+        if(!bike){
+            throw new BikeNotFoundError()
+        }
+
+        return bike
     }
 
     //Finds a rent in the stack with same user, bike and no return date. Gets the difference of the times
@@ -46,7 +58,10 @@ export class App {
     }
 
     //If a bike is avaliable, sets its avaliability to false, creates a new rent and pushes onto the stack
-    rentBike(bike: Bike, user: User): void {
+    rentBike(bikeId: string | undefined, email: string): void {
+        const user = this.findUser(email)
+        const bike = this.findBike(bikeId)
+
         if(!bike.available) {
             throw new Error('Bike unavaliable')
         }
@@ -56,7 +71,7 @@ export class App {
         this.rents.push(newRent)
     }
 
-    //Receives and email, if there's an user with that email on the users array, remove it
+    //Receives an email, if there's an user with that email in the users array, remove it
     //Returns true if it successfully deleted the user, falser otherwise
     removeUser(email: string): boolean {
         const index = this.users.findIndex(user => user.email === email)
@@ -67,43 +82,50 @@ export class App {
             return true
         }
 
-        console.log('Unable to find user')
-        return false
+        throw new UserNotFoundError()
     }
 
     //Receives a Bike object, adds an ID to it and pushes onto the bikes array
-    registerBike(newBike: Bike): void {
+    registerBike(newBike: Bike): string {
         newBike.id = crypto.randomUUID()
         this.bikes.push(newBike)
         console.log('Bike registered')
+        return newBike.id
     }
 
-    findUser(email: string): User | undefined{
-        return this.users.find(user => user.email === email)
+    //Searches for a user with the same email, throws an error if it doesn't find the user
+    findUser(email: string): User{
+        const user = this.users.find(aUser => aUser.email === email)
+
+        if(!user) {
+            throw new UserNotFoundError()
+        }
+
+        return user
     }
 
     //Adding password cryptography 
-    addUser(user: User): void {
+    async addUser(user: User): Promise<string> {
         if (this.users.some(rUser => { return rUser.email === user.email })){
-            throw new Error('Email already in use.')
+            throw new DuplicatedEmailError()
         }
+
         user.id = crypto.randomUUID()
 
         //Hashing the password
         const unhashedPassword = user.password
-        user.password = bcrypt.hashSync(unhashedPassword, 10)
+        user.password = await bcrypt.hashSync(unhashedPassword, 10)
 
         this.users.push(user)
-
-        console.log('User added to database')
+        return user.id
     }
 
     //Function that takes an email and a password and verifies if there's a user registered with the given email and password
-    verifyUser(email: String, password: String): boolean {
-        const user = this.users.find(aUser => aUser.email === email)
+    async verifyUser(email: string, password: string): Promise<boolean> {
+        const user = this.findUser(email)
 
         //If no user with the same email was found or the given password's hash doesn't match return false
-        if(!user || !bcrypt.compareSync(password, user.password)) {
+        if(!await bcrypt.compareSync(password, user.password)) {
             console.log('Email or password incorret')
             return false
         }
@@ -113,15 +135,11 @@ export class App {
         }
     }
 
+    //Changes a bike location given a bike id and a location
     moveBike(bikeId: string | undefined, newPosition: Location): void {
-        const aBike = this.bikes.find(aBike => aBike.id === bikeId)
+        const aBike = this.findBike(bikeId)
 
-        if(aBike){
-            aBike.position = newPosition
-            console.log('Bike moved to new location.')
-        }
-        else{
-            throw new Error('Bike not found')
-        }
+        aBike.position = newPosition
+        console.log('Bike moved to new location.')
     }
 }

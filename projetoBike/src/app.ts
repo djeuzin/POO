@@ -43,17 +43,17 @@ export class App {
     //Finds a rent in the stack with same user, bike and no return date. Gets the difference of the times
     //in hours and returns the value of the rent
     returnBike(bike: Bike, user: User): number {
-        const currentTime = new Date()
         const rent = this.rents.find(aRent => aRent.bike.id === bike.id && aRent.user.email === user.email && aRent.endDate === undefined)
 
         if(!rent){
             throw new Error('Rent not found')
         }
 
-        rent.endDate = currentTime
+        rent.endDate = new Date()
         rent.bike.available = true
-        var timeDiff = (rent.endDate.getTime() - rent.startDate.getTime()) / 1000
-        timeDiff /= (60*60)
+        const hour = 1000 * 60 * 60
+        var timeDiff = (rent.endDate.getTime() - rent.startDate.getTime()) / hour
+        timeDiff = Math.abs(timeDiff)
         return rent.bike.rate * timeDiff
     }
 
@@ -73,13 +73,13 @@ export class App {
 
     //Receives an email, if there's an user with that email in the users array, remove it
     //Returns true if it successfully deleted the user, falser otherwise
-    removeUser(email: string): boolean {
+    removeUser(email: string): void {
         const index = this.users.findIndex(user => user.email === email)
 
-        if(index){
+        if(index !== -1){
             this.users.splice(index, 1)
             console.log('User removed')
-            return true
+            return
         }
 
         throw new UserNotFoundError()

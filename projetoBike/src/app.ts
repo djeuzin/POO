@@ -10,6 +10,7 @@ import { BikeNotFoundError } from "./errors/bike-not-found-error"
 import { UserRepo } from "./ports/user-repo"
 import { BikeRepo } from "./ports/bike-repo"
 import { RentRepo } from "./ports/rent-repo"
+import { UserWithOpenRent } from "./errors/user-with-open-rent-error"
 const bcrypt = require('bcryptjs')
 
 export class App {
@@ -75,6 +76,11 @@ export class App {
     //Returns true if it successfully deleted the user, falser otherwise
     async removeUser(email: string): Promise<void> {
         const user = await this.userRepo.find(email)
+        const rentOpen = await this.rentRepo.findOpenRent(email)
+
+        if(rentOpen) {
+            throw new UserWithOpenRent
+        }
 
         if(user){
             this.userRepo.remove(email)

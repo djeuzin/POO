@@ -1,9 +1,7 @@
 import { Location } from './location'
+import { Rent } from './rent';
 
 export class Bike {
-    public available = true
-    public position = new Location(0.0, 0.0)
-
     constructor(
         public name: string,
         public type: string,
@@ -12,7 +10,9 @@ export class Bike {
         public rate: number,
         public description: string,
         public ratings: number,
-        public imageUrls: string[],
-        public id?: string
+        public id?: string,
+        public available = true,
+        public latitude: string = '0',
+        public longitude: string = '0'
     ) {}
 }

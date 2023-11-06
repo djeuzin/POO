@@ -20,6 +20,7 @@ model User {
 
 model Bike {
   id          String      @id @default(uuid())
+  name        String
   type        String
   bodysize    Float
   maxLoad     Float
@@ -27,20 +28,20 @@ model Bike {
   description String
   available   Boolean
   ratings     Float
-  position    String
-  imageUrs    ImageURLS[]
-  rent        Rents[]
+  latitude    String
+  longitude   String
+  Rents       Rents[]
+  ImageURLS   ImageURLS[]
 }
 
 model Rents {
-  user   User     @relation(fields: [userId], references: [id])
-  userId String
+  id     String  @id @default(uuid())
+  user   User     @relation(fields: [userEmail], references: [email])
+  userEmail String
   bike   Bike     @relation(fields: [bikeId], references: [id])
   bikeId String
   start  DateTime
   end    DateTime
-
-  @@unique([userId, bikeId, start])
 }
 
 model ImageURLS {

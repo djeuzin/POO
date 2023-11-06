@@ -2,11 +2,11 @@ import { Bike } from "./bike";
 import { User } from "./user";
 
 export class Rent {
-    public endDate: Date | undefined
     constructor (
-        public bike: Bike,
-        public user: User,
-        public startDate: Date,
-        public id?: string
+        public bikeId: string,
+        public userEmail: string,
+        public start: Date,
+        public id?: string,
+        public end?: Date
     ) {}
 }

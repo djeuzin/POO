@@ -59,17 +59,19 @@ export class App {
     }
 
     //If a bike is avaliable, sets its avaliability to false, creates a new rent and pushes onto the stack
-    async rentBike(bikeId: string | undefined, email: string): Promise<void> {
+    async rentBike(bikeId: string, email: string): Promise<void> {
         const user = await this.userRepo.find(email)
         const bike = await this.bikeRepo.find(bikeId)
 
-        if(!bike.available) {
+        if(bike != null && !bike.available) {
             throw new RentNotFoundError
         }
-
-        bike.available = false
-        const newRent = new Rent(bike, user, new Date())
-        await this.rentRepo.add(newRent)
+        
+        if(bike != null && user != null){
+            bike.available = false
+            const newRent = new Rent(bikeId, user.email, new Date())
+            await this.rentRepo.add(newRent)
+        }
     }
 
     //Receives an email, if there's an user with that email in the users array, remove it
@@ -126,7 +128,7 @@ export class App {
         const user = await this.userRepo.find(email)
 
         //If no user with the same email was found or the given password's hash doesn't match return false
-        if(!await bcrypt.compareSync(password, user.password)) {
+        if(user != null && !await bcrypt.compareSync(password, user.password)) {
             console.log('Email or password incorret')
             return false
         }
@@ -134,13 +136,5 @@ export class App {
             console.log('User verified')
             return true
         }
-    }
-
-    //Changes a bike location given a bike id and a location
-    async moveBike(bikeId: string, newPosition: Location): Promise<void> {
-        const aBike = await this.findBike(bikeId)
-
-        aBike.position = newPosition
-        console.log('Bike moved to new location.')
     }
 }
